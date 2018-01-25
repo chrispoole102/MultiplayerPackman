@@ -28,6 +28,8 @@ public class NetworkPlayer : NetworkBehaviour
             
             scoreDisplay = GameObject.Find("ScoreDisplay");
             scoreDisplay.SetActive(false);
+
+            StartCoroutine(setCameraFollow());
         }
         
 	    if(isServer)
@@ -47,10 +49,20 @@ public class NetworkPlayer : NetworkBehaviour
                                               
         Temp.GetComponent<PackmanGamePiece>().myName = myName;
         Temp.GetComponent<PackmanGamePiece>().owner = this.gameObject;
+
+        GameObject[] spawnPoints = GameObject.FindGameObjectsWithTag("SpawnPoint");
+        Vector3 spawnPos = spawnPoints[Random.Range(0, spawnPoints.Length)].transform.position;
+        Temp.transform.position = spawnPos;
         
         NetworkServer.Spawn(Temp);
         myPiece = Temp;
-
+    }
+    public IEnumerator setCameraFollow()
+    {
+        while (myPiece == null)
+        {
+            yield return new WaitForSeconds(0.1f);
+        }
         Camera.main.GetComponent<CameraFollow>().target = myPiece.transform;
     }
     public IEnumerator slowUpdate()
@@ -116,5 +128,5 @@ public class NetworkPlayer : NetworkBehaviour
     {
         myName = n;
     }
-
+    
 }
