@@ -44,11 +44,15 @@ public class PackmanGamePiece : NetworkBehaviour {
 
     public void OnTriggerEnter(Collider other)
     {
-        if (isClient)//we don't need to use myPlayer here
+        if (isClient)
         {
             if (other.gameObject.tag == "OnePointPickup")
             {
                 Destroy(other.gameObject);
+            }
+            if (other.gameObject.tag == "Enemy")
+            {
+                Destroy(gameObject);
             }
             //Visual Effect
         }
@@ -59,12 +63,20 @@ public class PackmanGamePiece : NetworkBehaviour {
                 myPlayer.score++;
                 Destroy(other.gameObject);
             }
-            
+            if (other.gameObject.tag == "Enemy")
+            {
+                StartCoroutine(myPlayer.spawnPiece());
+                
+                Destroy(gameObject);
+            }
             //Game State Change
         }
+        /*
         if (other.gameObject.tag == "Enemy")
         {
-            myPlayer.die();
-        }
+            //myPlayer.die();
+            myPlayer.Cmd_Die();
+            Debug.Log(isServer);
+        }*/
     }
 }

@@ -11,9 +11,12 @@ public class Enemy : NetworkBehaviour {
 	// Use this for initialization
 	void Start ()
     {
-        nma = GetComponent<NavMeshAgent>();
+        if (isServer)
+        {
+            nma = GetComponent<NavMeshAgent>();
 
-        StartCoroutine(slowUpdate());
+            StartCoroutine(slowUpdate());
+        }
 	}
 	
     public IEnumerator slowUpdate()

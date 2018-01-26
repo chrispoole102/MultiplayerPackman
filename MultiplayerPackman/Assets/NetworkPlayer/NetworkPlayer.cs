@@ -26,8 +26,6 @@ public class NetworkPlayer : NetworkBehaviour
             Cmd_SetName("Player " + (GameObject.FindGameObjectsWithTag("NetworkPlayer").Length));
             scoreDisplay = GameObject.Find("ScoreDisplay");
             scoreDisplay.SetActive(false);
-
-            StartCoroutine(setCameraFollow());
         }
         
 	    if(isServer)
@@ -55,14 +53,6 @@ public class NetworkPlayer : NetworkBehaviour
         NetworkServer.Spawn(Temp);
         myPiece = Temp;
     }
-    public IEnumerator setCameraFollow()
-    {
-        while (myPiece == null)
-        {
-            yield return new WaitForSeconds(0.1f);
-        }
-        Camera.main.GetComponent<CameraFollow>().target = myPiece.transform;
-    }
     public IEnumerator slowUpdate()
     {
         while(true)
@@ -86,27 +76,25 @@ public class NetworkPlayer : NetworkBehaviour
                     {
                         Cmd_Move(xt, yt);
                     }
-                    if (!scoreDisplay.activeSelf)
+                    
+                    if (Input.GetAxisRaw("Jump") > 0)
                     {
-                        if (Input.GetAxisRaw("Jump") > 0)
+                        scoreDisplay.SetActive(true);
+                        string temp = "";
+                        foreach (GameObject npgo in GameObject.FindGameObjectsWithTag("NetworkPlayer"))
                         {
-                            scoreDisplay.SetActive(true);
-                            string temp = "";
-                            foreach (GameObject npgo in GameObject.FindGameObjectsWithTag("NetworkPlayer"))
-                            {
-                                temp += npgo.GetComponent<NetworkPlayer>().myName + ": ";
-                                temp += npgo.GetComponent<NetworkPlayer>().score;
-                                temp += "\n";
-                            }
-                            scoreDisplay.transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<Text>().text = temp;
-                            //update text
+                            temp += npgo.GetComponent<NetworkPlayer>().myName + ": ";
+                            temp += npgo.GetComponent<NetworkPlayer>().score;
+                            temp += "\n";
                         }
+                        scoreDisplay.transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<Text>().text = temp;
+                        //update text
                     }
-                    else
+
+                    if (!scoreDisplay.activeSelf)
                     {
                         if (Input.GetAxisRaw("Jump") == 0)
                             scoreDisplay.SetActive(false);
-                        
                     }
                 }
 
@@ -125,18 +113,6 @@ public class NetworkPlayer : NetworkBehaviour
     public void Cmd_SetName(string n)
     {
         myName = n;
-    }
-    
-    public void die()
-    {
-        Destroy(myPiece);
-        myPiece = null;
-
-        if (isServer)
-            StartCoroutine(spawnPiece());
-
-        if (isLocalPlayer)
-            StartCoroutine(setCameraFollow());
     }
 
     void OnPlayerDisconnected(UnityEngine.NetworkPlayer player)
