@@ -20,12 +20,10 @@ public class NetworkPlayer : NetworkBehaviour
 	// Use this for initialization
 	void Start ()
     {
-
+        
         if (isLocalPlayer)
         {
-            string temp = GameObject.Find("NetworkManager").GetComponent<MyNetworkManager>().playerName;//get our name from our local network manager
-            Cmd_setName(temp);//give our name to the server
-            
+            Cmd_SetName("Player " + (GameObject.FindGameObjectsWithTag("NetworkPlayer").Length));
             scoreDisplay = GameObject.Find("ScoreDisplay");
             scoreDisplay.SetActive(false);
 
@@ -51,7 +49,7 @@ public class NetworkPlayer : NetworkBehaviour
         Temp.GetComponent<PackmanGamePiece>().owner = this.gameObject;
 
         GameObject[] spawnPoints = GameObject.FindGameObjectsWithTag("SpawnPoint");
-        Vector3 spawnPos = spawnPoints[Random.Range(0, spawnPoints.Length)].transform.position;
+        Vector3 spawnPos = spawnPoints[Random.Range(0, spawnPoints.Length-1)].transform.position;
         Temp.transform.position = spawnPos;
         
         NetworkServer.Spawn(Temp);
@@ -124,9 +122,32 @@ public class NetworkPlayer : NetworkBehaviour
         myPiece.GetComponent<Rigidbody>().velocity = new Vector3(x, 0, y) * 5.0f;//move the piece
     }
     [Command]
-    public void Cmd_setName(string n)
+    public void Cmd_SetName(string n)
     {
         myName = n;
     }
     
+    public void die()
+    {
+        Destroy(myPiece);
+        myPiece = null;
+
+        if (isServer)
+            StartCoroutine(spawnPiece());
+
+        if (isLocalPlayer)
+            StartCoroutine(setCameraFollow());
+    }
+
+    void OnPlayerDisconnected(UnityEngine.NetworkPlayer player)
+    {
+        Debug.Log("Clean up after player " + player);
+        Network.RemoveRPCs(player);
+        Network.DestroyPlayerObjects(player);
+    }
+
+    void OnDestroy()
+    {
+        Destroy(myPiece);
+    }
 }

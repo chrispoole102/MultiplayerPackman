@@ -59,7 +59,12 @@ public class PackmanGamePiece : NetworkBehaviour {
                 myPlayer.score++;
                 Destroy(other.gameObject);
             }
+            
             //Game State Change
+        }
+        if (other.gameObject.tag == "Enemy")
+        {
+            myPlayer.die();
         }
     }
 }
